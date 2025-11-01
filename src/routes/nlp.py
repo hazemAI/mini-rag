@@ -131,25 +131,73 @@ async def search_index(request: Request, project_id: str, search_request: Search
     nlp_controller = NLPController(
         generation_client=request.app.generation_client,
         embedding_client=request.app.embedding_client,
-        vectordb_client=request.app.vectordb_client
+        vectordb_client=request.app.vectordb_client,
+        template_parser=request.app.template_parser
     )
-   
+
     search_results = nlp_controller.search_vector_db_collection(
         project=project,
         query=search_request.query,
         limit=search_request.limit
     )
-        
+
     if not search_results:
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
-            content={"signal": ResponseSignal.SEARCH_VECTORDB_COLLECTION_ERROR.value}
+            content={
+                "signal": ResponseSignal.SEARCH_VECTORDB_COLLECTION_ERROR.value}
         )
-        
+
     return JSONResponse(
         status_code=status.HTTP_200_OK,
         content={
             "signal": ResponseSignal.SEARCH_VECTORDB_COLLECTION_SUCCESS.value,
             "search_results": search_results
+        }
+    )
+
+
+@nlp_router.post("/index/answer/{project_id}")
+async def answer_rag(request: Request, project_id: str, search_request: SearchIndexRequest):
+
+    project_model = await ProjectModel.create_instance(
+        db_client=request.app.db_client
+    )
+
+    project = await project_model.get_project_or_create_one(project_id=project_id)
+
+    if not project:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={"signal": ResponseSignal.PROJECT_NOT_FOUND.value}
+        )
+
+    nlp_controller = NLPController(
+        generation_client=request.app.generation_client,
+        embedding_client=request.app.embedding_client,
+        vectordb_client=request.app.vectordb_client,
+        template_parser=request.app.template_parser
+    )
+    
+    answer, full_prompt, chat_history = nlp_controller.answer_rag_question(
+        project=project,
+        query=search_request.query,
+        limit=search_request.limit
+    )
+    
+    if not answer:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={
+                "signal": ResponseSignal.ANSWER_RAG_QUESTION_ERROR.value}
+        )
+    
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={
+            "signal": ResponseSignal.ANSWER_RAG_QUESTION_SUCCESS.value,
+            "answer": answer,
+            "full_prompt": full_prompt,
+            "chat_history": chat_history
         }
     )

@@ -3,6 +3,7 @@ from ..VectorDBInterface import VectorDBInterface
 from ..VectorDBEnums import DistanceMethodEnums
 from typing import List
 import logging
+from models.db_schemas.data_chunk import RetrievedDocument
 
 
 class QdrantDBProvider(VectorDBInterface):
@@ -83,7 +84,7 @@ class QdrantDBProvider(VectorDBInterface):
                     record_ids: list = None, batch_size: int = 50):
         if metadatas is None:
             metadatas = [None] * len(texts)
-            
+
         if record_ids is None:
             record_ids = list(range(0, len(texts)))
 
@@ -106,7 +107,7 @@ class QdrantDBProvider(VectorDBInterface):
                 )
                 for j in range(len(batch_texts))
             ]
-            
+
             try:
                 _ = self.client.upload_records(
                     collection_name=collection_name,
@@ -125,15 +126,19 @@ class QdrantDBProvider(VectorDBInterface):
                 f"Can't search in non existed collection: {collection_name}")
             return False
 
-        try:
-            results = self.client.search(
-                collection_name=collection_name,
-                query_vector=vector,
-                limit=limit
-            )
-        except Exception as e:
-            self.logger.error(
-                f"Can't search in collection: {collection_name}, error: {e}")
-            return False
+        results = self.client.search(
+            collection_name=collection_name,
+            query_vector=vector,
+            limit=limit
+        )
 
-        return results
+        if not results or len(results) == 0:
+            return None
+
+        return [
+            RetrievedDocument(**{
+                "text": result.payload["text"],
+                "score": result.score
+            })
+            for result in results
+        ]
