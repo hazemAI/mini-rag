@@ -20,11 +20,14 @@ async def lifespan(app: FastAPI):
     llm_provider_factory = LLMProviderFactory(config=settings)
     vector_db_provider_factory = VectorDBProviderFactory(config=settings)
 
-    app.generation_client = llm_provider_factory.create(provider=settings.GENERATION_BACKEND)
+    app.generation_client = llm_provider_factory.create(
+        provider=settings.GENERATION_BACKEND)
     if app.generation_client:
-        app.generation_client.set_generation_model(model_id=settings.GENERATION_MODEL_ID)
+        app.generation_client.set_generation_model(
+            model_id=settings.GENERATION_MODEL_ID)
 
-    app.embedding_client = llm_provider_factory.create(provider=settings.EMBEDDING_BACKEND)
+    app.embedding_client = llm_provider_factory.create(
+        provider=settings.EMBEDDING_BACKEND)
     if app.embedding_client:
         app.embedding_client.set_embedding_model(
             model_id=settings.EMBEDDING_MODEL_ID,
@@ -35,7 +38,7 @@ async def lifespan(app: FastAPI):
         provider=settings.VECTOR_DB_BACKEND,
     )
     app.vectordb_client.connect()
-    
+
     app.template_parser = TemplateParser(
         language=settings.PRIMARY_LANG,
         default_language=settings.DEFAULT_LANG,

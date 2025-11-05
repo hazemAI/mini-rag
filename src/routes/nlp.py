@@ -37,7 +37,8 @@ async def index_project(request: Request, project_id: str, push_request: PushInd
     nlp_controller = NLPController(
         generation_client=request.app.generation_client,
         embedding_client=request.app.embedding_client,
-        vectordb_client=request.app.vectordb_client
+        vectordb_client=request.app.vectordb_client,
+        template_parser=request.app.template_parser
     )
 
     has_records = True
@@ -98,7 +99,8 @@ async def get_project_index_info(request: Request, project_id: str):
     nlp_controller = NLPController(
         generation_client=request.app.generation_client,
         embedding_client=request.app.embedding_client,
-        vectordb_client=request.app.vectordb_client
+        vectordb_client=request.app.vectordb_client,
+        template_parser=request.app.template_parser
     )
 
     collection_info = nlp_controller.get_vector_db_collection_info(
@@ -178,20 +180,20 @@ async def answer_rag(request: Request, project_id: str, search_request: SearchIn
         vectordb_client=request.app.vectordb_client,
         template_parser=request.app.template_parser
     )
-    
+
     answer, full_prompt, chat_history = nlp_controller.answer_rag_question(
         project=project,
         query=search_request.query,
         limit=search_request.limit
     )
-    
+
     if not answer:
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
             content={
                 "signal": ResponseSignal.ANSWER_RAG_QUESTION_ERROR.value}
         )
-    
+
     return JSONResponse(
         status_code=status.HTTP_200_OK,
         content={
