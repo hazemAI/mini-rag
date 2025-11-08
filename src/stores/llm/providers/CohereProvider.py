@@ -3,6 +3,7 @@ from ..LLMInterface import LLMInterface
 from ..LLMEnums import CohereEnums, DocumentTypeEnums
 import cohere
 import logging
+from typing import List, Union
 
 
 class CohereProvider(LLMInterface):
@@ -34,13 +35,13 @@ class CohereProvider(LLMInterface):
     def set_embedding_model(self, model_id: str, embedding_size: int):
         self.embedding_model_id = model_id
         self.embedding_size = embedding_size
-        
+
     def process_text(self, text: str):
         return text[:self.default_input_max_characters].strip()
-    
+
     def generate_text(self, prompt: str, chat_history: list = [], max_output_tokens: int = None,
                       temperature: float = None):
-        
+
         if not self.client:
             self.logger.error("Cohere client is not set")
             return None
@@ -69,9 +70,9 @@ class CohereProvider(LLMInterface):
             return None
 
         return response.text
-    
-    def embed_text(self, text: str, document_type: str = None):
-        
+
+    def embed_text(self, text: Union[str, List[str]], document_type: str = None):
+
         if not self.client:
             self.logger.error("Cohere client is not set")
             return None
@@ -80,13 +81,16 @@ class CohereProvider(LLMInterface):
             self.logger.error("Cohere embedding model is not set")
             return None
 
+        if isinstance(text, str):
+            text = [text]
+
         input_type = CohereEnums.DOCUMENT.value
         if document_type == DocumentTypeEnums.QUERY.value:
             input_type = CohereEnums.QUERY.value
 
         response = self.client.embed(
             model=self.embedding_model_id,
-            texts=[self.process_text(text)],
+            texts=[self.process_text(t) for t in text],
             input_type=input_type,
             embedding_types=['float']
         )
@@ -95,8 +99,8 @@ class CohereProvider(LLMInterface):
             self.logger.error("Failed to embed text with Cohere")
             return None
 
-        return response.embeddings.float[0]
-    
+        return [f for f in response.embeddings.float]
+
     def construct_prompt(self, prompt: str, role: str):
         return {
             "role": role,
