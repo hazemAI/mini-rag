@@ -8,6 +8,8 @@ from contextlib import asynccontextmanager
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 
+from utils.metrics import setup_metrics
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     settings = get_settings()
@@ -60,11 +62,13 @@ async def lifespan(app: FastAPI):
     yield
 
     # cleanup
-    app.db_engine.dispose()
+    await app.db_engine.dispose()
     await app.vectordb_client.disconnect()
 
 
 app = FastAPI(lifespan=lifespan)
+
+setup_metrics(app)
 
 # Routers
 app.include_router(base.base_router)

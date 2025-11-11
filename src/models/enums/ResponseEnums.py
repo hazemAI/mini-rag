@@ -19,3 +19,5 @@ class ResponseSignal(Enum):
     SEARCH_VECTORDB_COLLECTION_SUCCESS = "search_vector_db_collection_success"
     ANSWER_RAG_QUESTION_ERROR = "answer_rag_question_error"
     ANSWER_RAG_QUESTION_SUCCESS = "answer_rag_question_success"
+    DATA_PUSH_TASK_READY = "data_push_task_ready"
+    PROCESS_AND_PUSH_WORKFLOW_READY = "process_and_push_workflow_ready"
