@@ -7,11 +7,7 @@ aiofiles==23.2.1
 langchain==0.1.20
 PyMuPDF==1.24.3
 
-# MongoDB stack (Motor + PyMongo aligned)
-motor>=3.6.0
-pymongo>=4.6.0
 
-pydantic-mongo==2.3.0
 openai==1.75.0
 cohere==5.5.8
 qdrant-client==1.10.1

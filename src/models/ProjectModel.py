@@ -1,6 +1,5 @@
 from .BaseDataModel import BaseDataModel
 from .db_schemas import Project
-from .enums.DatabaseEnum import DatabaseEnum
 from sqlalchemy.future import select
 from sqlalchemy import func
 
@@ -30,20 +29,16 @@ class ProjectModel(BaseDataModel):
                 result = await session.execute(query)
                 project = result.scalar_one_or_none()
                 if project is None:
-                    project_rec = Project(project_id=project_id)
-                    project = await self.create_project(project=project_rec)
-                    return project
-                else:
-                    return project
+                    project = Project(project_id=project_id)
+                    session.add(project)
+                return project
 
     async def get_all_projects(self, page: int = 1, page_size: int = 10):
-
         async with self.db_client() as session:
             async with session.begin():
-
-                total_documents = await session.execute(select(func.count(
-                    Project.project_id
-                )))
+                total_documents = await session.execute(
+                    select(func.count(Project.project_id))
+                )
 
                 total_documents = total_documents.scalar_one()
 
@@ -51,9 +46,9 @@ class ProjectModel(BaseDataModel):
                 if total_documents % page_size > 0:
                     total_pages += 1
 
-                query = select(Project).offset(
-                    (page - 1) * page_size).limit(page_size)
+                query = select(Project).offset((page - 1) * page_size).limit(page_size)
 
-                projects = await session.execute(query).scalars().all()
+                result = await session.execute(query)
+                projects = result.scalars().all()
 
                 return projects, total_pages
