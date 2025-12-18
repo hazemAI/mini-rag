@@ -11,6 +11,16 @@ A minimal implementation of a Retrieval-Augmented Generation (RAG) system for qu
 - **Docker Support**: Easy deployment using Docker Compose.
 - **Asynchronous**: Built with `asyncio` for performance.
 
+## Screenshots
+
+<p align="center">
+  <img src="./assets/ui_demo1.jpeg" alt="Mini-RAG UI Demo 1" width="100%">
+</p>
+
+<p align="center">
+  <img src="./assets/ui_demo2.jpeg" alt="Mini-RAG UI Demo 2" width="100%">
+</p>
+
 ## Requirements
 
 - Python 3.10 or later

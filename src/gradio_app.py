@@ -4,7 +4,6 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import gradio as gr
-import asyncio
 import aiofiles
 
 settings = None
@@ -46,8 +45,6 @@ async def initialize_services():
         from stores.llm.LLMFactory import LLMProviderFactory
         from stores.vectordb.VectorDBProviderFactory import VectorDBProviderFactory
         from stores.llm.templates.template_parser import TemplateParser
-        from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-        from sqlalchemy.orm import sessionmaker
 
         _postgres_conn = "postgresql+asyncpg://{}:{}@{}:{}/{}".format(
             settings.POSTGRES_USERNAME,
@@ -360,25 +357,11 @@ async def refresh_projects():
     return gr.Dropdown(choices=projects)
 
 
-def get_status_message():
-    if _initialized:
-        return "✅ Connected to database and ready!"
-    elif _init_error:
-        return f"❌ Not connected: {_init_error}"
-    return "⏳ Initializing (will happen on first action)..."
-
-
 def create_gradio_interface():
     with gr.Blocks() as demo:
         gr.Markdown(
             "# 🔍 Mini-RAG Question Answering\n"
             "Upload documents, index them, and ask questions!"
-        )
-
-        gr.Textbox(
-            label="🔌 Connection Status",
-            value=get_status_message(),
-            interactive=False,
         )
 
         with gr.Tabs():
